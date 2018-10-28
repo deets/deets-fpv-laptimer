@@ -7,7 +7,7 @@ import serial
 from bokeh.models import ColumnDataSource
 from bokeh.plotting import curdoc, figure
 from bokeh.layouts import column
-from bokeh.models import FactorRange
+from bokeh.models import FactorRange, Range1d
 
 from tornado import gen
 
@@ -63,6 +63,7 @@ def main():
         width=600,
         height=400,
         x_range=FactorRange(*CHANNEL_NAMES),
+        y_range=Range1d(0, 1024),
     )
     channel_figure.vbar(
         x="channel_names",

@@ -24,6 +24,7 @@ CON _clkmode = xtal1 + pll16x           'Set MCU clock operation
     tx = 30
     rx = 31
     baud = 1000000
+    channel_changes_per_second = 20
 
 OBJ
   rtc    : "rtc6715"
@@ -37,7 +38,7 @@ PUB go | frequency, av
   repeat
     repeat frequency from 0 to 39
         rtc.set_frequency(frequency)
-        waitcnt(clkfreq/20 + cnt)
+        waitcnt(clkfreq/channel_changes_per_second + cnt)
         av := mcp.read_channel(0)
         serial.dec(av)
         if frequency < 39
