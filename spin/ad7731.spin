@@ -35,12 +35,6 @@ PUB init(_spi_clk, _mosi, _miso, _chipselect, _data_ready)
     outa[spi_clk]~
     outa[mosi]~
   
-    reset_chip                     ' put adc in its initial state
-
-
-PRI reset_chip
-  waitcnt(cnt+8_000_000)        ' wait for 100ms
-
 
 PRI wait_for_data_ready | t 
 ' wait with a timeout WAIT_MS
