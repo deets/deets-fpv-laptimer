@@ -15,17 +15,24 @@ CON _clkmode = xtal1 + pll16x           'Set MCU clock operation
     data = 10                      
     chipselect  = 8                   
     clock  = 9
-   
+    
+    tx = 30
+    rx = 31
+    baud = 115200
+    
 OBJ
-  rtc  :  "rtc6715"                 
+  rtc  :  "rtc6715"  
+  serial : "FullDuplexSerial"               
 
 PUB go | frequency                              
   rtc.init(chipselect, clock, data)
-   
+  serial.Start (rx, tx, 0, baud)
   repeat
     repeat frequency from 0 to 39
         rtc.set_frequency(frequency)
-        waitcnt(clkfreq/1000 + cnt)                     'wait 0.1 seconds
-
+        waitcnt(clkfreq/1000 + cnt)
+        serial.str(String("foo"))
+        serial.tx (13)
+        serial.tx (10)
                             
     
