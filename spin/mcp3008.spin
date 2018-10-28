@@ -51,7 +51,7 @@ PUB read_channel(c) : r
       r |= ina[miso]
       outa[clock]~
       r <-= 1
-    r ><= 10
+    'r ><= 10
 
     outa[chipselect]~~
 

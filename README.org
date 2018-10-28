@@ -1,0 +1,19 @@
+
+
+
+| Pin | Function |
+|-----+----------|
+|   1 | data     |
+|   2 | cs       |
+|   3 | clk      |
+|   4 | gnd      |
+|   5 | vcc      |
+|   6 | rssi     |
+|   7 | ?        |
+|   8 | video    |
+|   9 | gnd      |
+
+
+* Credits
+
+https://github.com/Spacefish/RichWave/blob/master/RichWave.cpp
