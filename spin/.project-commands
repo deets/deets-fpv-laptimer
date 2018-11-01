@@ -1,0 +1,1 @@
+:compile-command '(absolute "/usr/bin/openspin test.spin" )
