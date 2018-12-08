@@ -30,6 +30,7 @@ OBJ
   rtc    : "rtc6715"
   serial : "FullDuplexSerial"
   mcp    : "mcp3008"
+  'mcp    : "mcp3008asm"
 
 PUB go | frequency, av
   rtc.init(chipselect, clock, data)
