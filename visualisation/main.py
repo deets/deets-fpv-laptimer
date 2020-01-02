@@ -9,8 +9,6 @@ from bokeh.plotting import curdoc, figure
 from bokeh.layouts import column
 from bokeh.models import FactorRange, Range1d
 
-from tornado import gen
-
 CHANNEL_NAMES = (
     "E4", "R1", "E3", "E2", "R2", "E1", "A8", "R3",
     "B1", "F1", "A7", "B2", "F2", "A6", "R4", "B3",
@@ -19,20 +17,21 @@ CHANNEL_NAMES = (
     "B8", "F8", "R7", "E5", "E6", "R8", "E7", "E8",
 )
 
+DEFAULT_BAUD = 460800
 
-def read_data(doc, source, port="/dev/ttyUSB0", baudrate=1000_000):
+
+def read_data(doc, source, port="/dev/ttyUSB0", baudrate=DEFAULT_BAUD):
     conn = serial.Serial(
         port=port,
         baudrate=baudrate,
     )
+    readings = [0] * 40
     while True:
         line = conn.readline().decode("ascii")
         values = line.split(":")
-        min_ = 1024
-        if len(values) == 40:
-            values = [int(v) for v in values]
-            min_ = min(min_, min(values))
-            readings = [v - min_ for v in values]
+        if len(values) == 2:
+            channel, value = [int(v) for v in values]
+            readings[channel] = value
             patch = dict(
                 readings=[(slice(0, 40), readings)],
             )

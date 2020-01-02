@@ -10,7 +10,7 @@ CON _clkmode = xtal1 + pll16x           'Set MCU clock operation
   _clkfreq = 80_000_000
   TX_PIN  = 30
   RX_PIN  = 31
-  SERIAL_BPS = 115200
+  SERIAL_BPS = 460800
   MPC_MODE = 1 ' ch0 enabled, no diff
   MPC_DATA_PIN = 23
   MPC_CLK_PIN = 25
@@ -36,7 +36,7 @@ PUB main | mode, input
   mcp3008.start(MPC_DATA_PIN, MPC_CLK_PIN, MPC_CS_PIN, MPC_MODE)
   rtc_init
 
-  mode := MODE_IDLE
+  mode := MODE_SCAN
   repeat
     input := serial.rxcheck
     if input <> -1
@@ -57,9 +57,8 @@ PRI scan | freq, ch0, cs
     ' wait to stabilise, at least 50ms!
     waitcnt(cnt + _clkfreq / (1000 / 50))
     ch0 := mcp3008.in(0)
-    serial.str(string("channel "))
     serial.dec(freq)
-    serial.str(string(" rssi: "))
+    serial.str(string(":"))
     serial.dec(ch0)
     serial.tx(13)
     serial.tx(10)
