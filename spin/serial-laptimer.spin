@@ -10,14 +10,14 @@ CON _clkmode = xtal1 + pll16x           'Set MCU clock operation
   _clkfreq = 80_000_000
   TX_PIN  = 30
   RX_PIN  = 31
-  SERIAL_BPS = 460800
-  MPC_MODE = 1 ' ch0 enabled, no diff
+  SERIAL_BPS = 230400
+  MPC_MODE = 3 ' ch0, ch1 enabled, no diff
   MPC_DATA_PIN = 23
   MPC_CLK_PIN = 25
   MPC_CS_PIN = 27
   RTC_CLK = 22
   RTC_DATA = 24
-  RTC_COUNT = 1
+  RTC_COUNT = 2
 
   ' The program modes
   MODE_IDLE = 0
@@ -25,7 +25,7 @@ CON _clkmode = xtal1 + pll16x           'Set MCU clock operation
   MODE_LAPTIME = 2
 
 DAT
-  RTC_CS byte 26
+  RTC_CS byte 26, 20
 OBJ
   serial: "FullDuplexSerial"
   mcp3008: "MCP3008"
@@ -43,25 +43,36 @@ PUB main | mode, input
       case input
         "s": mode:= MODE_SCAN
         "i": mode := MODE_IDLE
-
+             serial.tx("i")
+             nl
+        "c": serial.tx("c")
+             serial.dec(RTC_COUNT)
+             nl
     case mode
       MODE_IDLE: waitcnt(cnt + _clkfreq / 1000) ' just wait an ms
       MODE_SCAN: scan
 
 
-PRI scan | freq, ch0, cs
+PRI scan | freq, channel_reading, cs, hfreq
   freq := 0
   repeat freq from 0 to 39
     repeat cs from 0 to RTC_COUNT - 1
-      rtc6715.set_frequency(RTC_CS[cs], freq)
+      hfreq := (freq + 40 / RTC_COUNT * cs) // 40
+      rtc6715.set_frequency(RTC_CS[cs], hfreq)
+
     ' wait to stabilise, at least 50ms!
     waitcnt(cnt + _clkfreq / (1000 / 50))
-    ch0 := mcp3008.in(0)
-    serial.dec(freq)
-    serial.str(string(":"))
-    serial.dec(ch0)
-    serial.tx(13)
-    serial.tx(10)
+    serial.tx("s")
+    serial.dec(RTC_COUNT)
+    serial.tx(":")
+    repeat cs from 0 to RTC_COUNT - 1
+      hfreq := (freq + 40 / RTC_COUNT * cs) // 40
+      serial.dec(hfreq)
+      channel_reading := mcp3008.in(cs)
+      serial.str(string(":"))
+      serial.dec(channel_reading)
+      serial.str(string(":"))
+    nl
 
 PRI rtc_init | cs
   ' setup CS for the one connected RTC6715
@@ -70,3 +81,7 @@ PRI rtc_init | cs
     outa[RTC_CS[cs]]~~   ' high
 
   rtc6715.init(RTC_CLK, RTC_DATA)
+
+PRI nl
+    serial.tx(13)
+    serial.tx(10)

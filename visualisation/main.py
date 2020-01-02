@@ -1,7 +1,5 @@
-from functools import partial
-from random import random
 import threading
-import copy
+import re
 import serial
 
 from bokeh.models import ColumnDataSource
@@ -17,7 +15,7 @@ CHANNEL_NAMES = (
     "B8", "F8", "R7", "E5", "E6", "R8", "E7", "E8",
 )
 
-DEFAULT_BAUD = 460800
+DEFAULT_BAUD = 230400
 
 
 def read_data(doc, source, port="/dev/ttyUSB0", baudrate=DEFAULT_BAUD):
@@ -27,11 +25,20 @@ def read_data(doc, source, port="/dev/ttyUSB0", baudrate=DEFAULT_BAUD):
     )
     readings = [0] * 40
     while True:
+        # Data looks like this:
+        # s<count>:<channel0>:<reading0>:...:
+        # note the trailing colon!
         line = conn.readline().decode("ascii")
-        values = line.split(":")
-        if len(values) == 2:
-            channel, value = [int(v) for v in values]
-            readings[channel] = value
+        parts = line.split(":")
+        m = re.match(r"s(\d+)", parts[0])
+        if m:
+            count = int(m.group(1))
+            assert len(parts) == count * 2 + 2
+            payload = parts[1:-1]
+            for channel, value in zip(payload[::2], payload[1::2]):
+                channel, value = int(channel), int(value)
+                readings[channel] = value
+
             patch = dict(
                 readings=[(slice(0, 40), readings)],
             )
