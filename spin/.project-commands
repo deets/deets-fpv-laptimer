@@ -1,1 +1,1 @@
-:compile-command '(absolute "/usr/bin/openspin test.spin" )
+:compile-command '(relative "./build.sh serial-laptimer.spin")
