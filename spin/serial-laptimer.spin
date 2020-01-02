@@ -11,7 +11,6 @@ CON _clkmode = xtal1 + pll16x           'Set MCU clock operation
   TX_PIN  = 30
   RX_PIN  = 31
   SERIAL_BPS = 230400
-  MPC_MODE = 3 ' ch0, ch1 enabled, no diff
   MPC_DATA_PIN = 23
   MPC_CLK_PIN = 25
   MPC_CS_PIN = 27
@@ -33,7 +32,7 @@ OBJ
 
 PUB main | mode, input
   serial.Start(RX_PIN, TX_PIN, 0, SERIAL_BPS)
-  mcp3008.start(MPC_DATA_PIN, MPC_CLK_PIN, MPC_CS_PIN, MPC_MODE)
+  mcp3008.start(MPC_DATA_PIN, MPC_CLK_PIN, MPC_CS_PIN, (|< RTC_COUNT) - 1 )
   rtc_init
 
   mode := MODE_SCAN
