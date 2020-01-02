@@ -46,6 +46,11 @@ PUB main | mode, input
              nl
         "c": serial.tx("c")
              serial.dec(RTC_COUNT)
+             serial.tx(":")
+             case mode
+                MODE_IDLE: serial.tx("i")
+                MODE_SCAN: serial.tx("s")
+                MODE_LAPTIME: serial.tx("l")
              nl
     case mode
       MODE_IDLE: waitcnt(cnt + _clkfreq / 1000) ' just wait an ms
