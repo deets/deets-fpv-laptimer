@@ -4,10 +4,12 @@ verify_ssl = true
 name = "pypi"
 
 [dev-packages]
+ipython = "*"
 
 [packages]
 bokeh = "*"
 pyserial = "*"
+rx = "*"
 
 [requires]
 python_version = "3.7"

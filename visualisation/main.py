@@ -1,10 +1,10 @@
 import threading
+import queue
 import re
 import serial
 import time
-import logging
+import rx.subject
 import struct
-from functools import partial
 
 from bokeh.models import ColumnDataSource
 from bokeh.plotting import curdoc, figure
@@ -110,7 +110,6 @@ class NodeController:
         return int(number_of_vtx[1:]), mode
 
     def tune(self, rtc, channel):
-        assert self.mode == "idle"
         channel_number = CHANNEL_NAMES.index(channel)
         cmd = struct.pack(
             "BB",
@@ -122,10 +121,29 @@ class NodeController:
         self._conn.write(cmd)
 
 
+class PropellerTimestampProcessor:
+
+    CPUFREQ = 80_000_000
+
+    def __init__(self):
+        self._last_ts = None
+        self.signal = rx.subject.Subject()
+
+    def __call__(self, timestamp):
+        if self._last_ts is not None:
+            diff = timestamp - self._last_ts
+            if diff < -2**31:
+                diff += 2**32
+            self.signal.on_next(diff / self.CPUFREQ)
+        self._last_ts = timestamp
+
+
 class Visualisation:
 
     def __init__(self, node):
         self._node = node
+        self._timestamp_processor = PropellerTimestampProcessor()
+        self._lines_q = queue.Queue()
 
         number_of_vtx = node.configuration()[0]
 
@@ -142,10 +160,11 @@ class Visualisation:
         self._scanner_source = ColumnDataSource(
                 data=scanner_data,
         )
-
+        # the aspict ratio is maintained over
+        # the scaling parameter.
         scanner_figure = figure(
             width=600,
-            height=400,
+            height=100,
             x_range=FactorRange(*CHANNEL_NAMES),
             y_range=Range1d(0, 1024),
         )
@@ -166,12 +185,15 @@ class Visualisation:
             lambda attr, old, new: setattr(node, "mode", new)
         )
         laptime_row, self._laptime_sources = self._setup_laptimer(number_of_vtx)
+        time_diff_graph = self._setup_timediff_graph(self._timestamp_processor.signal)
         layout = column(
             children=[
                 mode_selector,
                 scanner_figure,
                 laptime_row,
+                time_diff_graph,
             ],
+            sizing_mode="scale_width"
         )
         doc.add_root(layout)
 
@@ -179,6 +201,33 @@ class Visualisation:
         t = threading.Thread(target=self._background_task)
         t.daemon = True
         t.start()
+
+    def _setup_timediff_graph(self, signal):
+        p = figure(
+            y_axis_label="time delta",
+            width=600,
+            height=50,
+        )
+        data = dict(
+            x=[i for i in range(RSSI_HISTORY)],
+            timedelta=[0] * RSSI_HISTORY
+            )
+        td_source = ColumnDataSource(
+            data=data
+        )
+        p.circle(x='x', y="timedelta", source=td_source)
+
+        def update_td(tdiff):
+            timedelta = td_source.data['timedelta']
+            timedelta = timedelta[1:]
+            timedelta.append(tdiff * 1000) # convert to ms
+            patch = dict(
+                timedelta=[(slice(0, RSSI_HISTORY), timedelta)],
+            )
+            td_source.patch(patch)
+
+        signal.subscribe(on_next=update_td)
+        return p
 
     def _scanning(self, results):
         parts = results.split(":")
@@ -223,7 +272,7 @@ class Visualisation:
             )
             # ensure our default state is correct
             self._node.tune(i, CHANNEL_NAMES[0])
-            vtx_column = column(children=[tuner, p])
+            vtx_column = column(children=[tuner, p], sizing_mode="scale_width")
             laptime_rows.append(vtx_column)
 
         return (
@@ -233,6 +282,10 @@ class Visualisation:
 
     def _laptime(self, results):
         timestamp, *entries = results.split(":")[:-1]
+
+        timestamp = int(timestamp, 16)
+        self._timestamp_processor(timestamp)
+
         for entry in entries:
             entry = int(entry, 16)
             value = entry & 0x00ffffff
@@ -246,14 +299,23 @@ class Visualisation:
     def _background_task(self):
         while True:
             line = self._node.readline()
+            self._lines_q.put(line)
+            self._doc.add_next_tick_callback(self._process_lines)
+
+    def _process_lines(self):
+        # For some reason we get multiple callbacks
+        # in the mainloop. So instead of relying on
+        # one callback per line, we gather them
+        # and process as many of them as we find.
+        for _ in range(self._lines_q.qsize()):
+            line = self._lines_q.get()
             command = line[0]
             results = line[1:]
             callback = dict(
                 s=self._scanning,
                 l=self._laptime,
-                ).get(command, lambda results: print("unknown:", command))
-
-            self._doc.add_next_tick_callback(lambda: callback(results))
+             ).get(command, lambda results: print("unknown:", command))
+            callback(results)
 
 
 def main():
