@@ -1,10 +1,7 @@
 import threading
 import queue
 import re
-import serial
-import time
 import rx.subject
-import struct
 
 from bokeh.models import ColumnDataSource
 from bokeh.plotting import curdoc, figure
@@ -12,82 +9,14 @@ from bokeh.layouts import column, row
 from bokeh.models import FactorRange, Range1d
 from bokeh.models import Select
 
-CHANNEL_NAMES = (
-    "E4", "R1", "E3", "E2", "R2", "E1", "A8", "R3",
-    "B1", "F1", "A7", "B2", "F2", "A6", "R4", "B3",
-    "F3", "A5", "B4", "F4", "A4", "R5", "B5", "F5",
-    "A3", "B6", "F6", "R6", "A2", "B7", "F7", "A1",
-    "B8", "F8", "R7", "E5", "E6", "R8", "E7", "E8",
+from laptimer import (
+    PropellerNodeController,
+    CHANNEL_NAMES,
 )
 
 PORT = "/dev/ttyUSB0"
 DEFAULT_BAUD = 115200
 RSSI_HISTORY = 200
-
-class NodeController:
-
-    def __init__(self):
-        self._conn = serial.Serial(
-            port=PORT,
-            baudrate=DEFAULT_BAUD,
-        )
-        self._mode = None
-        self.mode = "idle"
-        self._number_of_vtx, _ = self.configuration()
-
-    @property
-    def mode(self):
-        return self._mode
-
-    @mode.setter
-    def mode(self, value):
-        if value != self._mode:
-            self._conn.write(
-                dict(
-                    idle=b"i",
-                    scanner=b"s",
-                    laptimer=b"l",
-                )[value]
-            )
-            self._mode = value
-
-    def readline(self):
-        # the protocol is line-based but for
-        # the laptime info - that's as compact as possible
-        command = self._conn.read(1)
-        if command == b'l':
-            return command + self._conn.read(4 * (self._number_of_vtx + 1))
-        else:
-            return command + self._conn.readline()
-
-    def idle(self):
-        self._conn.write(b"i")
-
-    def configuration(self):
-        self._conn.write(b"c")
-        while True:
-            try:
-                line = self.readline().decode("ascii")
-                if line.startswith("c"):
-                    break
-            except UnicodeDecodeError:
-                # can happen if there is residual binary
-                # data
-                pass
-
-        number_of_vtx, mode = line.strip().split(":")
-        return int(number_of_vtx[1:]), mode
-
-    def tune(self, rtc, channel):
-        channel_number = CHANNEL_NAMES.index(channel)
-        cmd = struct.pack(
-            "BB",
-            rtc + ord("0"),
-            channel_number + ord("0"),
-        )
-        self._conn.write(b"t")
-        time.sleep(.1)
-        self._conn.write(cmd)
 
 
 class PropellerTimestampProcessor:
@@ -251,10 +180,11 @@ class Visualisation:
         )
 
     def _laptime(self, results):
-        timestamp, *entries = struct.unpack(self._laptime_format, results)
-        self._timestamp_processor(timestamp)
+        timestamp, *entries = results.split(b":")[:-1]
+        self._timestamp_processor(int(timestamp, 16))
 
         for entry in entries:
+            entry = int(entry, 16)
             value = entry & 0x00ffffff
             number = (entry >> 24) & 0xff
             lt_source = self._laptime_sources[number]
@@ -288,7 +218,7 @@ class Visualisation:
 def main():
     # This is important! Save curdoc() to make sure all threads
     # see the same document.
-    node = NodeController()
+    node = PropellerNodeController(PORT, DEFAULT_BAUD)
     number_of_vtx, _ = node.configuration()
 
     visualisation = Visualisation(node)
