@@ -183,10 +183,8 @@ class Visualisation:
         timestamp, *entries = results.split(b":")[:-1]
         self._timestamp_processor(int(timestamp, 16))
 
-        for entry in entries:
-            entry = int(entry, 16)
-            value = entry & 0x00ffffff
-            number = (entry >> 24) & 0xff
+        for number, entry in enumerate(entries):
+            value = int(entry, 16)
             lt_source = self._laptime_sources[number]
             rssi = lt_source.data['rssi'][1:]
             rssi.append(value)

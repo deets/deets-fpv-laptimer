@@ -88,8 +88,7 @@ PRI laptime | rssi[RTC_COUNT], cs, h
   serial.tx(":")
   repeat cs from 0 to RTC_COUNT - 1
      h := rssi[cs]
-     h |= cs << 24
-     serial.hex(h, 8)
+     serial.hex(h, 6)
      serial.tx(":")
   nl
 
