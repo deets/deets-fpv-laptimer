@@ -9,14 +9,14 @@ from common import OPENSPIN, PROPMAN
 
 def main():
     main_spin = sys.argv[1]
-    main_binary = os.path.splitext(main_spin)[0] + ".binary"
+    main_eeprom = os.path.splitext(main_spin)[0] + ".eeprom"
     subprocess.run(
-        [OPENSPIN, main_spin],
+        [OPENSPIN, main_spin, "-e"],
         check=True
     )
-    assert os.path.exists(main_binary)
+    assert os.path.exists(main_eeprom)
     subprocess.run(
-        [PROPMAN, main_binary],
+        [PROPMAN, "-w", main_eeprom],
         check=True
     )
 
