@@ -24,49 +24,6 @@ PORT = "/dev/ttyUSB0"
 DEFAULT_BAUD = 115200
 RSSI_HISTORY = 200
 
-
-# def read_data(
-#         doc,
-#         source,
-#         laptime_rows,
-#         conn,
-#         ):
-#     readings = [0] * 40
-#     laptime_sources = []
-#         command = line[0]
-#         if command == "e":
-#             logging.error(line[1:])
-#         elif command == "c":
-#             number_of_vtx, mode = line.strip().split(":")
-#             for i in range(int(number_of_vtx[1:])):
-#                 p = figure(y_axis_label="rssi", y_range=Range1d(0, 1024))
-#                 data = dict(
-#                     x=[i for i in range(RSSI_HISTORY)],
-#                     rssi=[100 * (i + 1)] * RSSI_HISTORY
-#                 )
-#                 lt_source = ColumnDataSource(
-#                     data=data
-#                 )
-#                 p.circle(x='x', y="rssi", source=lt_source)
-#                 laptime_sources.append(lt_source)
-#                 tuner = Select(
-#                     value=CHANNEL_NAMES[0],
-#                     options=list(CHANNEL_NAMES)
-#                     )
-#                 tuner.on_change('value', partial(tune_vtx, conn, i))
-#                 # ensure our default state is correct
-#                 tune_vtx(conn, i, None, CHANNEL_NAMES[0], CHANNEL_NAMES[0])
-#                 vtx_column = column(children=[tuner, p])
-#                 doc.add_next_tick_callback(
-#                     lambda vtx_column=vtx_column: laptime_rows.children.append(vtx_column)
-#                 )
-#         elif command == "t":
-#             rtc, channel = line[1:].split(":")
-#             logging.warn("Tuned %s to channel %s", rtc, CHANNEL_NAMES[int(channel)])
-#         else:
-#             print("malformed data", line)
-
-
 class NodeController:
 
     def __init__(self):
@@ -76,6 +33,7 @@ class NodeController:
         )
         self._mode = None
         self.mode = "idle"
+        self._number_of_vtx, _ = self.configuration()
 
     @property
     def mode(self):
@@ -94,7 +52,13 @@ class NodeController:
             self._mode = value
 
     def readline(self):
-        return self._conn.readline().decode("ascii")
+        # the protocol is line-based but for
+        # the laptime info - that's as compact as possible
+        command = self._conn.read(1)
+        if command == b'l':
+            return command + self._conn.read(4 * (self._number_of_vtx + 1))
+        else:
+            return command + self._conn.readline()
 
     def idle(self):
         self._conn.write(b"i")
@@ -102,9 +66,14 @@ class NodeController:
     def configuration(self):
         self._conn.write(b"c")
         while True:
-            line = self.readline()
-            if line.startswith("c"):
-                break
+            try:
+                line = self.readline().decode("ascii")
+                if line.startswith("c"):
+                    break
+            except UnicodeDecodeError:
+                # can happen if there is residual binary
+                # data
+                pass
 
         number_of_vtx, mode = line.strip().split(":")
         return int(number_of_vtx[1:]), mode
@@ -146,6 +115,7 @@ class Visualisation:
         self._lines_q = queue.Queue()
 
         number_of_vtx = node.configuration()[0]
+        self._laptime_format = "<I" + "I" * number_of_vtx
 
         doc = self._doc = curdoc()
 
@@ -230,7 +200,7 @@ class Visualisation:
         return p
 
     def _scanning(self, results):
-        parts = results.split(":")
+        parts = results.decode("ascii").split(":")
         m = re.match(r"(\d+)", parts[0])
         if m:
             count = int(m.group(1))
@@ -281,13 +251,10 @@ class Visualisation:
         )
 
     def _laptime(self, results):
-        timestamp, *entries = results.split(":")[:-1]
-
-        timestamp = int(timestamp, 16)
+        timestamp, *entries = struct.unpack(self._laptime_format, results)
         self._timestamp_processor(timestamp)
 
         for entry in entries:
-            entry = int(entry, 16)
             value = entry & 0x00ffffff
             number = (entry >> 24) & 0xff
             lt_source = self._laptime_sources[number]
@@ -309,12 +276,12 @@ class Visualisation:
         # and process as many of them as we find.
         for _ in range(self._lines_q.qsize()):
             line = self._lines_q.get()
-            command = line[0]
+            command = bytes([line[0]])
             results = line[1:]
-            callback = dict(
-                s=self._scanning,
-                l=self._laptime,
-             ).get(command, lambda results: print("unknown:", command))
+            callback = {
+                b"s": self._scanning,
+                b"l": self._laptime,
+             }.get(command, lambda results: print("unknown:", command))
             callback(results)
 
 
