@@ -1,5 +1,9 @@
+import argparse
+
 import tornado.ioloop
 import tornado.web
+
+from .db import setup
 
 
 class MainHandler(tornado.web.RequestHandler):
@@ -13,7 +17,30 @@ def make_app():
     ])
 
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=8888,
+    )
+    parser.add_argument(
+        "--db",
+        required=True,
+        help="SQLAlchemy database URI. "
+        "E.g. sqlite:////tmp/laptimer.db "
+        "for a sqlite db given as full path."
+    )
+    parser.add_argument(
+        "-v", "--verbose",
+        action="store_true",
+    )
+    return parser.parse_args()
+
+
 def main():
+    args = parse_args()
+    setup(args.db, echo=args.verbose)
     app = make_app()
-    app.listen(8888)
+    app.listen(args.port)
     tornado.ioloop.IOLoop.current().start()
