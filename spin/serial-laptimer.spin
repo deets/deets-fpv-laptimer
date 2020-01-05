@@ -24,7 +24,7 @@ CON _clkmode = xtal1 + pll16x           'Set MCU clock operation
   MODE_LAPTIME = 2
 
 DAT
-  RTC_CS byte 26, 20
+  RTC_CS byte 20, 18
 OBJ
   serial: "FullDuplexSerial"
   mcp3008: "MCP3008"
