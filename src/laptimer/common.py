@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright: 2020, Diez B. Roggisch, Berlin . All rights reserved.
-
+import re
+import argparse
 
 CHANNELS = {
     "A": [5865, 5845, 5825, 5805, 5785, 5765, 5745, 5725],  # Band A
@@ -19,6 +20,12 @@ CHANNEL_NAMES = (
     "B8", "F8", "R7", "E5", "E6", "R8", "E7", "E8",
 )
 
+FREQUENCIES = sorted(
+    frequency
+    for _, frequencies in CHANNELS.items()
+    for frequency in frequencies
+)
+
 
 def verify_channel_names():
     generated = tuple(
@@ -30,4 +37,22 @@ def verify_channel_names():
     )
     assert generated == CHANNEL_NAMES, generated
 
+
 verify_channel_names()
+
+
+def channel_type(incoming):
+    if re.match(r"\d+", incoming):
+        frequency = int(incoming)
+        if frequency not in FREQUENCIES:
+            raise argparse.ArgumentTypeError(
+                f"{incoming} not in known frequencies!"
+            )
+        return FREQUENCIES.index(frequency)
+    else:
+        incoming = incoming.upper()
+        if incoming not in CHANNEL_NAMES:
+            raise argparse.ArgumentTypeError(
+                f"{incoming} not in known channels!"
+            )
+        return CHANNEL_NAMES.index(incoming)

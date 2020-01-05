@@ -62,7 +62,9 @@ setup(
     # Scripts
     entry_points={
         "console_scripts": [
-            "deets-fpv-laptimer = laptimer:main"],
+            "deets-fpv-laptimer = laptimer:main",
+            "deets-fpv-recorder = laptimer:recorder_main",
+        ],
     },
 
     # Other configurations

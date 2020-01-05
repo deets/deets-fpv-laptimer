@@ -4,3 +4,4 @@
 from .server import main
 from .common import CHANNEL_NAMES
 from .propnode import PropellerNodeController
+from .commands import recorder_main

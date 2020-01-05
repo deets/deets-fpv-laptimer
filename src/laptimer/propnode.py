@@ -18,6 +18,9 @@ class PropellerNodeController:
         self.mode = "idle"
         self._number_of_vtx, _ = self.configuration()
 
+    def __len__(self):
+        return self._number_of_vtx
+
     @property
     def mode(self):
         return self._mode
@@ -35,8 +38,6 @@ class PropellerNodeController:
             self._mode = value
 
     def readline(self):
-        # the protocol is line-based but for
-        # the laptime info - that's as compact as possible
         return self._conn.readline()
 
     def idle(self):
@@ -58,11 +59,13 @@ class PropellerNodeController:
         return int(number_of_vtx[1:]), mode
 
     def tune(self, rtc, channel):
-        channel_number = CHANNEL_NAMES.index(channel)
+        assert 0 <= rtc < self._number_of_vtx
+        if isinstance(channel, str):
+            channel = CHANNEL_NAMES.index(channel)
         cmd = struct.pack(
             "BB",
             rtc + ord("0"),
-            channel_number + ord("0"),
+            channel + ord("0"),
         )
         self._conn.write(b"t")
         time.sleep(.1)
