@@ -55,7 +55,7 @@ class PropellerNodeController:
                 # data
                 pass
 
-        number_of_vtx, mode = line.strip().split(":")
+        number_of_vtx, mode, pause = line.strip().split(":")
         return int(number_of_vtx[1:]), mode
 
     def tune(self, rtc, channel):
@@ -70,3 +70,9 @@ class PropellerNodeController:
         self._conn.write(b"t")
         time.sleep(.1)
         self._conn.write(cmd)
+
+    def pause(self, ticks):
+        # ticks are 10000th seconds <=> 100 microseconds
+        self._conn.write(b"p")
+        time.sleep(.1)
+        self._conn.write(struct.pack("B", ticks))

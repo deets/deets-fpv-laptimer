@@ -30,12 +30,12 @@ OBJ
   mcp3008: "MCP3008"
   rtc6715: "RTC6715"
 
-PUB main | mode, input
+PUB main | mode, input, pause
   serial.Start(RX_PIN, TX_PIN, 0, SERIAL_BPS)
   mcp3008.start(MPC_DATA_PIN, MPC_CLK_PIN, MPC_CS_PIN, (|< RTC_COUNT) - 1 )
   rtc_init
-
   mode := MODE_IDLE
+  pause := 0
   repeat
     input := serial.rxcheck
     if input <> -1
@@ -52,12 +52,17 @@ PUB main | mode, input
                 MODE_IDLE: serial.tx("i")
                 MODE_SCAN: serial.tx("s")
                 MODE_LAPTIME: serial.tx("l")
+             serial.tx(":")
+             serial.dec(pause)
              nl
         "t": tune
+        "p": pause := (serial.rx * (_clkfreq / 10000))
     case mode
       MODE_IDLE: waitcnt(cnt + _clkfreq / 1000) ' just wait an ms
       MODE_SCAN: scan
       MODE_LAPTIME: laptime
+                    if pause <> 0
+                       waitcnt(cnt + pause)
 
 PRI tune | rtc, channel
    rtc := serial.rx

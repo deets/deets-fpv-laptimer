@@ -218,6 +218,7 @@ def main():
     # see the same document.
     node = PropellerNodeController(PORT, DEFAULT_BAUD)
     number_of_vtx, _ = node.configuration()
+    node.pause(20)
 
     visualisation = Visualisation(node)
     visualisation.start_background_reader()
