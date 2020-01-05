@@ -12,3 +12,11 @@ def test_setup():
     copter = db.Copter("hippo", pilot)
     db.session.add_all([pilot, copter])
     db.session.commit()
+
+
+def test_master_data():
+    assert(
+        db.session.query(db.Channel).count() ==
+        40
+    )
+    assert(db.CurrentState.instance())
