@@ -5,12 +5,14 @@ name = "pypi"
 
 [dev-packages]
 ipython = "*"
+pytest = "*"
 
 [packages]
 bokeh = "*"
 pyserial = "*"
 rx = "*"
 tornado = "*"
+sqlalchemy = "*"
 
 [requires]
 python_version = "3.7"
