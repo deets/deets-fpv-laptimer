@@ -1,0 +1,437 @@
+EESchema Schematic File Version 4
+EELAYER 26 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L deets:propeller-quickstart-40000-rev-b-connector J?
+U 1 1 5E126DC7
+P 7200 3200
+F 0 "J?" H 7236 4325 50  0000 C CNN
+F 1 "propeller-quickstart-40000-rev-b-connector" H 7236 4234 50  0000 C CNN
+F 2 "" H 7200 3200 50  0001 C CNN
+F 3 "" H 7200 3200 50  0001 C CNN
+	1    7200 3200
+	1    0    0    -1  
+$EndComp
+$Comp
+L Analog_ADC:MCP3008 U?
+U 1 1 5E126F4E
+P 3950 3250
+F 0 "U?" H 3950 3928 50  0000 C CNN
+F 1 "MCP3008" H 3950 3837 50  0000 C CNN
+F 2 "" H 4050 3350 50  0001 C CNN
+F 3 "http://ww1.microchip.com/downloads/en/DeviceDoc/21295d.pdf" H 4050 3350 50  0001 C CNN
+	1    3950 3250
+	1    0    0    -1  
+$EndComp
+Text Label 7650 3400 0    50   ~ 0
+MCP_DATA_PIN
+Text Label 4550 3250 0    50   ~ 0
+MCP_DATA_PIN
+Wire Wire Line
+	4550 3350 4550 3250
+Text Label 7650 3500 0    50   ~ 0
+MCP_CLK_PIN
+Text Label 4550 3150 0    50   ~ 0
+MCP_CLK_PIN
+Text Label 7650 3600 0    50   ~ 0
+MCP_CS_PIN
+Text Label 4550 3450 0    50   ~ 0
+MCP_CS_PIN
+Text Label 6850 3400 2    50   ~ 0
+RTC_CLK
+Text Label 6850 3500 2    50   ~ 0
+RTC_DATA
+Text Label 6850 3300 2    50   ~ 0
+RTC_CS0
+Text Label 6850 3200 2    50   ~ 0
+RTC_CS1
+Text Label 6850 3100 2    50   ~ 0
+RTC_CS2
+Text Label 6850 3000 2    50   ~ 0
+RTC_CS3
+NoConn ~ 3350 3650
+NoConn ~ 3350 3550
+NoConn ~ 3350 3450
+NoConn ~ 3350 3350
+Text Label 3350 2950 2    50   ~ 0
+RTC_A0
+Text Label 3350 3050 2    50   ~ 0
+RTC_A1
+Text Label 3350 3150 2    50   ~ 0
+RTC_A2
+Text Label 3350 3250 2    50   ~ 0
+RTC_A3
+$Comp
+L power:+3V3 #PWR?
+U 1 1 5E1275A0
+P 3050 1250
+F 0 "#PWR?" H 3050 1100 50  0001 C CNN
+F 1 "+3V3" H 3065 1423 50  0000 C CNN
+F 2 "" H 3050 1250 50  0001 C CNN
+F 3 "" H 3050 1250 50  0001 C CNN
+	1    3050 1250
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 5E1275D9
+P 3050 1350
+F 0 "#PWR?" H 3050 1100 50  0001 C CNN
+F 1 "GND" H 3055 1177 50  0000 C CNN
+F 2 "" H 3050 1350 50  0001 C CNN
+F 3 "" H 3050 1350 50  0001 C CNN
+	1    3050 1350
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3850 2750 4150 2750
+$Comp
+L power:+3V3 #PWR?
+U 1 1 5E127634
+P 4150 2750
+F 0 "#PWR?" H 4150 2600 50  0001 C CNN
+F 1 "+3V3" H 4165 2923 50  0000 C CNN
+F 2 "" H 4150 2750 50  0001 C CNN
+F 3 "" H 4150 2750 50  0001 C CNN
+	1    4150 2750
+	1    0    0    -1  
+$EndComp
+Connection ~ 4150 2750
+Wire Wire Line
+	3850 3850 4150 3850
+$Comp
+L power:GND #PWR?
+U 1 1 5E127705
+P 4150 3850
+F 0 "#PWR?" H 4150 3600 50  0001 C CNN
+F 1 "GND" H 4155 3677 50  0000 C CNN
+F 2 "" H 4150 3850 50  0001 C CNN
+F 3 "" H 4150 3850 50  0001 C CNN
+	1    4150 3850
+	1    0    0    -1  
+$EndComp
+Connection ~ 4150 3850
+NoConn ~ 6850 2300
+NoConn ~ 7650 2300
+NoConn ~ 6850 2400
+NoConn ~ 6850 2500
+NoConn ~ 6850 2600
+NoConn ~ 7650 2600
+NoConn ~ 7650 2500
+NoConn ~ 7650 2400
+$Comp
+L deets:RX5808 U?
+U 1 1 5E1278E1
+P 2100 4750
+F 0 "U?" H 2100 5375 50  0000 C CNN
+F 1 "RX5808" H 2100 5284 50  0000 C CNN
+F 2 "vtx-scanner:RX5808" H 2000 4650 50  0001 C CNN
+F 3 "" H 2100 4750 50  0001 C CNN
+	1    2100 4750
+	1    0    0    -1  
+$EndComp
+$Comp
+L deets:RX5808 U?
+U 1 1 5E1279E8
+P 2100 6050
+F 0 "U?" H 2100 6675 50  0000 C CNN
+F 1 "RX5808" H 2100 6584 50  0000 C CNN
+F 2 "vtx-scanner:RX5808" H 2000 5950 50  0001 C CNN
+F 3 "" H 2100 6050 50  0001 C CNN
+	1    2100 6050
+	1    0    0    -1  
+$EndComp
+$Comp
+L deets:RX5808 U?
+U 1 1 5E127A60
+P 2100 3450
+F 0 "U?" H 2100 4075 50  0000 C CNN
+F 1 "RX5808" H 2100 3984 50  0000 C CNN
+F 2 "vtx-scanner:RX5808" H 2000 3350 50  0001 C CNN
+F 3 "" H 2100 3450 50  0001 C CNN
+	1    2100 3450
+	1    0    0    -1  
+$EndComp
+$Comp
+L deets:RX5808 U?
+U 1 1 5E127B57
+P 2100 2200
+F 0 "U?" H 2100 2825 50  0000 C CNN
+F 1 "RX5808" H 2100 2734 50  0000 C CNN
+F 2 "vtx-scanner:RX5808" H 2000 2100 50  0001 C CNN
+F 3 "" H 2100 2200 50  0001 C CNN
+	1    2100 2200
+	1    0    0    -1  
+$EndComp
+Text Label 2600 2100 0    50   ~ 0
+RTC_A0
+Text Label 2600 3350 0    50   ~ 0
+RTC_A1
+Text Label 2600 4650 0    50   ~ 0
+RTC_A2
+Text Label 2600 5950 0    50   ~ 0
+RTC_A3
+Text Label 2600 2500 0    50   ~ 0
+RTC_CS0
+Text Label 2600 3750 0    50   ~ 0
+RTC_CS1
+Text Label 2600 5050 0    50   ~ 0
+RTC_CS2
+Text Label 2600 6350 0    50   ~ 0
+RTC_CS3
+Text Label 2600 2600 0    50   ~ 0
+RTC_DATA
+Text Label 2600 3850 0    50   ~ 0
+RTC_DATA
+Text Label 2600 5150 0    50   ~ 0
+RTC_DATA
+Text Label 2600 6450 0    50   ~ 0
+RTC_DATA
+Text Label 2600 6250 0    50   ~ 0
+RCT_CLK
+Text Label 2600 4950 0    50   ~ 0
+RTC_CLK
+Text Label 2600 3650 0    50   ~ 0
+RTC_CLK
+Text Label 2600 2400 0    50   ~ 0
+RTC_CLK
+$Comp
+L power:+5V #PWR?
+U 1 1 5E127FF0
+P 2850 1250
+F 0 "#PWR?" H 2850 1100 50  0001 C CNN
+F 1 "+5V" H 2865 1423 50  0000 C CNN
+F 2 "" H 2850 1250 50  0001 C CNN
+F 3 "" H 2850 1250 50  0001 C CNN
+	1    2850 1250
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+5V #PWR?
+U 1 1 5E128113
+P 2950 2200
+F 0 "#PWR?" H 2950 2050 50  0001 C CNN
+F 1 "+5V" H 2965 2373 50  0000 C CNN
+F 2 "" H 2950 2200 50  0001 C CNN
+F 3 "" H 2950 2200 50  0001 C CNN
+	1    2950 2200
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2950 2200 2600 2200
+$Comp
+L power:+5V #PWR?
+U 1 1 5E12816A
+P 2950 3450
+F 0 "#PWR?" H 2950 3300 50  0001 C CNN
+F 1 "+5V" H 2965 3623 50  0000 C CNN
+F 2 "" H 2950 3450 50  0001 C CNN
+F 3 "" H 2950 3450 50  0001 C CNN
+	1    2950 3450
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2950 3450 2600 3450
+Wire Wire Line
+	2600 4750 2950 4750
+$Comp
+L power:+5V #PWR?
+U 1 1 5E12820F
+P 2950 4750
+F 0 "#PWR?" H 2950 4600 50  0001 C CNN
+F 1 "+5V" H 2965 4923 50  0000 C CNN
+F 2 "" H 2950 4750 50  0001 C CNN
+F 3 "" H 2950 4750 50  0001 C CNN
+	1    2950 4750
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+5V #PWR?
+U 1 1 5E128350
+P 2950 6050
+F 0 "#PWR?" H 2950 5900 50  0001 C CNN
+F 1 "+5V" H 2965 6223 50  0000 C CNN
+F 2 "" H 2950 6050 50  0001 C CNN
+F 3 "" H 2950 6050 50  0001 C CNN
+	1    2950 6050
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2950 6050 2600 6050
+NoConn ~ 1600 4450
+NoConn ~ 1600 5750
+NoConn ~ 1600 3150
+NoConn ~ 1600 1900
+$Comp
+L power:GND #PWR?
+U 1 1 5E1287FD
+P 3050 6150
+F 0 "#PWR?" H 3050 5900 50  0001 C CNN
+F 1 "GND" H 3055 5977 50  0000 C CNN
+F 2 "" H 3050 6150 50  0001 C CNN
+F 3 "" H 3050 6150 50  0001 C CNN
+	1    3050 6150
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3050 6150 2600 6150
+$Comp
+L power:GND #PWR?
+U 1 1 5E1288A2
+P 3050 4850
+F 0 "#PWR?" H 3050 4600 50  0001 C CNN
+F 1 "GND" H 3055 4677 50  0000 C CNN
+F 2 "" H 3050 4850 50  0001 C CNN
+F 3 "" H 3050 4850 50  0001 C CNN
+	1    3050 4850
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3050 4850 2600 4850
+$Comp
+L power:GND #PWR?
+U 1 1 5E128A90
+P 3050 3550
+F 0 "#PWR?" H 3050 3300 50  0001 C CNN
+F 1 "GND" H 3055 3377 50  0000 C CNN
+F 2 "" H 3050 3550 50  0001 C CNN
+F 3 "" H 3050 3550 50  0001 C CNN
+	1    3050 3550
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3050 3550 2600 3550
+$Comp
+L power:GND #PWR?
+U 1 1 5E128C8A
+P 3050 2300
+F 0 "#PWR?" H 3050 2050 50  0001 C CNN
+F 1 "GND" H 3055 2127 50  0000 C CNN
+F 2 "" H 3050 2300 50  0001 C CNN
+F 3 "" H 3050 2300 50  0001 C CNN
+	1    3050 2300
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3050 2300 2600 2300
+$Comp
+L power:GND #PWR?
+U 1 1 5E128EE8
+P 1400 1800
+F 0 "#PWR?" H 1400 1550 50  0001 C CNN
+F 1 "GND" H 1405 1627 50  0000 C CNN
+F 2 "" H 1400 1800 50  0001 C CNN
+F 3 "" H 1400 1800 50  0001 C CNN
+	1    1400 1800
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 5E128F3A
+P 1400 3050
+F 0 "#PWR?" H 1400 2800 50  0001 C CNN
+F 1 "GND" H 1405 2877 50  0000 C CNN
+F 2 "" H 1400 3050 50  0001 C CNN
+F 3 "" H 1400 3050 50  0001 C CNN
+	1    1400 3050
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 5E128F86
+P 1400 4350
+F 0 "#PWR?" H 1400 4100 50  0001 C CNN
+F 1 "GND" H 1405 4177 50  0000 C CNN
+F 2 "" H 1400 4350 50  0001 C CNN
+F 3 "" H 1400 4350 50  0001 C CNN
+	1    1400 4350
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 5E128FBA
+P 1400 5650
+F 0 "#PWR?" H 1400 5400 50  0001 C CNN
+F 1 "GND" H 1405 5477 50  0000 C CNN
+F 2 "" H 1400 5650 50  0001 C CNN
+F 3 "" H 1400 5650 50  0001 C CNN
+	1    1400 5650
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1400 5650 1500 5650
+Wire Wire Line
+	1500 5650 1500 5850
+Wire Wire Line
+	1500 5850 1600 5850
+Wire Wire Line
+	1600 5650 1500 5650
+Connection ~ 1500 5650
+Wire Wire Line
+	1600 4550 1500 4550
+Wire Wire Line
+	1500 4550 1500 4350
+Wire Wire Line
+	1500 4350 1600 4350
+Wire Wire Line
+	1500 4350 1400 4350
+Connection ~ 1500 4350
+Wire Wire Line
+	1600 3250 1500 3250
+Wire Wire Line
+	1500 3250 1500 3050
+Wire Wire Line
+	1500 3050 1600 3050
+Wire Wire Line
+	1500 3050 1400 3050
+Connection ~ 1500 3050
+Wire Wire Line
+	1400 1800 1500 1800
+Wire Wire Line
+	1600 2000 1500 2000
+Wire Wire Line
+	1500 2000 1500 1800
+Connection ~ 1500 1800
+Wire Wire Line
+	1500 1800 1600 1800
+Wire Wire Line
+	2600 1800 3050 1800
+Wire Wire Line
+	3050 1800 3050 2300
+Connection ~ 3050 2300
+Wire Wire Line
+	2600 3050 3050 3050
+Wire Wire Line
+	3050 3050 3050 3550
+Connection ~ 3050 3550
+Wire Wire Line
+	3050 4850 3050 4350
+Wire Wire Line
+	3050 4350 2600 4350
+Connection ~ 3050 4850
+Wire Wire Line
+	3050 6150 3050 5650
+Wire Wire Line
+	3050 5650 2600 5650
+Connection ~ 3050 6150
+NoConn ~ 2600 5750
+NoConn ~ 2600 5850
+NoConn ~ 2600 4550
+NoConn ~ 2600 4450
+NoConn ~ 2600 3250
+NoConn ~ 2600 3150
+NoConn ~ 2600 2000
+NoConn ~ 2600 1900
+$EndSCHEMATC

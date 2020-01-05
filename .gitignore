@@ -1,4 +1,5 @@
 *.binary
 *.eeprom
 *.egg-info
+*.bak
 /build/
