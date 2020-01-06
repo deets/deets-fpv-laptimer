@@ -2,4 +2,5 @@
 *.eeprom
 *.egg-info
 *.bak
+*-bak
 /build/
