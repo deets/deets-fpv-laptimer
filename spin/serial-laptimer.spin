@@ -16,7 +16,7 @@ CON _clkmode = xtal1 + pll16x           'Set MCU clock operation
   MPC_CS_PIN = 27
   RTC_CLK = 22
   RTC_DATA = 24
-  RTC_COUNT = 2
+  RTC_COUNT = 1
 
   ' The program modes
   MODE_IDLE = 0
