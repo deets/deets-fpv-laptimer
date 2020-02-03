@@ -35,7 +35,27 @@ OBJ
 PUB main | mode, input, pause
   i2c.Start(SCL_PIN, SCA_PIN, ADDRESS)
   mcp3008.start(MPC_DATA_PIN, MPC_CLK_PIN, MPC_CS_PIN, (|< RTC_COUNT) - 1 )
+  ' Register layout
+  ' 16 bit values are little endian
+  '
+  ' 0 Address
+  '
+  ' 1 $25 (needed for node-api-level call
+  ' 2 NODE_API_LEVEL
+  '
+  ' 3 READ_FREQUENCY / WRITE_FREQUENCY L
+  ' 4 READ_FREQUENCY / WRITE_FREQUENCY H
+  '
+  ' 5 R/W ENTER_AT_LEVEL
+  ' 6 R/W EXIT_AT_LEVEL
+
   i2c.put(0, ADDRESS)
   i2c.put(1, $25)
   i2c.put(2, NODE_API_LEVEL)
+
+  i2c.put(3, $16) ' 5658
+  i2c.put(4, $1a)
+
+  i2c.put(5, $f0) ' enter
+  i2c.put(6, $80) ' exit
   repeat

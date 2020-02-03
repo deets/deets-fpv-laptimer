@@ -29,6 +29,12 @@
 }}
 CON
   READ_REVISION_CODE = $22
+  READ_FREQUENCY = $03
+  WRITE_FREQUENCY = $51
+  READ_ENTER_AT_LEVEL = $31
+  WRITE_ENTER_AT_LEVEL = $71
+  READ_EXIT_AT_LEVEL  = $32
+  WRITE_EXIT_AT_LEVEL = $72
 VAR
   long  flags                                           ' Used to determine if a register has new data from the master
 
@@ -225,14 +231,36 @@ ack                                                                             
 ack_ret                 ret
 '----------------------------------------------------------------------------------------------------------------------
 translate
+' Translates the distributed register values into our compact memory representation
+' The result of this is a reset checksum, that we know how many bytes to expect
+' and the register offset in I2C_Byte
                         mov       checksum, #0
                         mov       byte_count, #32 ' always enough for unknown amounts of data
                         cmp       I2C_byte, #READ_REVISION_CODE wz
-          if_ne         jmp       #:foo
+          if_ne         jmp       #:read_frequency
                         mov       I2C_byte, #1
                         mov       byte_count, #2
                         jmp       #translate_ret
-:foo
+:read_frequency
+                        cmp       I2C_Byte, #READ_FREQUENCY wz
+          if_ne         cmp       I2C_Byte, #WRITE_FREQUENCY wz
+          if_ne         jmp       #:read_enter_at_level
+                        mov       I2C_byte, #3
+                        mov       byte_count, #2
+:read_enter_at_level
+                        cmp       I2C_Byte, #READ_ENTER_AT_LEVEL wz
+          if_ne         cmp       I2C_Byte, #WRITE_ENTER_AT_LEVEL wz
+          if_ne         jmp       #:read_exit_at_level
+                        mov       I2C_byte, #5
+                        mov       byte_count, #1
+:read_exit_at_level
+                        cmp       I2C_Byte, #READ_EXIT_AT_LEVEL wz
+          if_ne         cmp       I2C_Byte, #WRITE_EXIT_AT_LEVEL wz
+          if_ne         jmp       #:unknown
+                        mov       I2C_byte, #6
+                        mov       byte_count, #1
+:unknown
+
 translate_ret           ret
 
 '----------------------------------------------------------------------------------------------------------------------
