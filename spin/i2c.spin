@@ -27,6 +27,8 @@
   Tested up to 1Mbps (max transmit speed of the master object)
 
 }}
+CON
+  READ_REVISION_CODE = $22
 VAR
   long  flags                                           ' Used to determine if a register has new data from the master
 
@@ -138,6 +140,7 @@ write '(from_master)
                         mov       t2,#1                                         ' Use t2 to hold the flag of the current register
                         mov       data_address,register_address                 ' Prepare the to store new data
                         call      #receive                                      ' First byte received is a register address
+                        call      #translate                                    ' We must re-map the registers
                         add       data_address,I2C_byte
                         shl       t2,I2C_byte                                   ' Shift the flag to the appropriate register
                         call      #ack
@@ -188,8 +191,16 @@ stopping                                                                        
 '----------------------------------------------------------------------------------------------------------------------
 respond                                                                         '   (Write)      (Read ACK or NAK)
                         mov       loop_counter,#8                               '                
-                        rdbyte    I2C_byte,data_address                         ' SCL  
-                        shl       I2C_byte,#32-8                                ' SDA  ───────
+                        cmp       byte_count, #0              wz
+          if_z          jmp       #:use_checksum
+                        rdbyte    I2C_byte, data_address
+                        add       checksum, I2C_byte
+                        shl       I2C_byte,#32-8
+                        sub       byte_count, #1
+                        jmp       #:loop                                        '
+:use_checksum
+                        mov       I2C_byte, checksum
+                        shl       I2C_byte,#32-8
 :loop
                         waitpne   SCL_mask,SCL_mask
                         shl       I2C_byte,#1                 wc
@@ -213,6 +224,18 @@ ack                                                                             
                         andn      dira,SDA_mask
 ack_ret                 ret
 '----------------------------------------------------------------------------------------------------------------------
+translate
+                        mov       checksum, #0
+                        mov       byte_count, #32 ' always enough for unknown amounts of data
+                        cmp       I2C_byte, #READ_REVISION_CODE wz
+          if_ne         jmp       #:foo
+                        mov       I2C_byte, #1
+                        mov       byte_count, #2
+                        jmp       #translate_ret
+:foo
+translate_ret           ret
+
+'----------------------------------------------------------------------------------------------------------------------
 'nak                                                                            ' SCL 
 '                       waitpne   SCL_mask,SCL_mask                             ' SDA 
 '                       waitpeq   SCL_mask,SCL_mask
@@ -232,7 +255,8 @@ I2C_byte                res       1
 loop_counter            res       1
 t1                      res       1
 t2                      res       1
-
+checksum                res       1
+byte_count              res       1
                         fit
 
 DAT

@@ -10,7 +10,7 @@ CON _clkmode = xtal1 + pll16x           'Set MCU clock operation
   _clkfreq = 80_000_000
   SCA_PIN  = 21
   SCL_PIN  = 19
-  ADDRESS = $33
+  ADDRESS = 8
   NODE_API_LEVEL = 21
 
   MPC_DATA_PIN = 23
@@ -36,5 +36,6 @@ PUB main | mode, input, pause
   i2c.Start(SCL_PIN, SCA_PIN, ADDRESS)
   mcp3008.start(MPC_DATA_PIN, MPC_CLK_PIN, MPC_CS_PIN, (|< RTC_COUNT) - 1 )
   i2c.put(0, ADDRESS)
-  i2c.put(1, NODE_API_LEVEL)
+  i2c.put(1, $25)
+  i2c.put(2, NODE_API_LEVEL)
   repeat
