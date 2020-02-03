@@ -27,10 +27,21 @@ PUB init(_clock, _data)
     outa[clock]~
     outa[data]~
 
-PUB set_frequency(chipselect, f)
+PUB set_channel(chipselect, c)
     outa[chipselect]~
     write_register($1)
-    write_data(frequency_table[f])
+    write_data(frequency_table[c])
+    outa[chipselect]~~
+
+PUB set_frequency(chipselect, f) | value, n, a
+    f := f - 479
+    n := f >> 6
+    a := (f & $3f) >> 1
+    value := a | (n << 7)
+
+    outa[chipselect]~
+    write_register($1)
+    write_data(value)
     outa[chipselect]~~
 
 PRI write_register(r)

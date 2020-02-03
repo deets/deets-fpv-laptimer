@@ -71,7 +71,7 @@ PRI tune | rtc, channel
    channel -= "0" ' adjust for simpler entry via a terminal
    if rtc => 0 and rtc < RTC_COUNT
      if channel => 0 and channel < 40
-       rtc6715.set_frequency(RTC_CS[rtc], channel)
+       rtc6715.set_channel(RTC_CS[rtc], channel)
        serial.str(string("t"))
        serial.dec(rtc)
        serial.str(string(":"))

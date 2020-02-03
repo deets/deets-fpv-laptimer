@@ -35,6 +35,7 @@ CON
   WRITE_ENTER_AT_LEVEL = $71
   READ_EXIT_AT_LEVEL  = $32
   WRITE_EXIT_AT_LEVEL = $72
+  READ_LAP_STATS = $05
 VAR
   long  flags                                           ' Used to determine if a register has new data from the master
 
@@ -240,7 +241,6 @@ translate
           if_ne         jmp       #:read_frequency
                         mov       I2C_byte, #1
                         mov       byte_count, #2
-                        jmp       #translate_ret
 :read_frequency
                         cmp       I2C_Byte, #READ_FREQUENCY wz
           if_ne         cmp       I2C_Byte, #WRITE_FREQUENCY wz
@@ -256,11 +256,15 @@ translate
 :read_exit_at_level
                         cmp       I2C_Byte, #READ_EXIT_AT_LEVEL wz
           if_ne         cmp       I2C_Byte, #WRITE_EXIT_AT_LEVEL wz
-          if_ne         jmp       #:unknown
+          if_ne         jmp       #:read_lap_stats
                         mov       I2C_byte, #6
                         mov       byte_count, #1
+:read_lap_stats
+                        cmp       I2C_byte, #READ_LAP_STATS wz
+          if_ne         jmp       #:unknown
+                        mov       I2C_byte, #7
+                        mov       byte_count, #16
 :unknown
-
 translate_ret           ret
 
 '----------------------------------------------------------------------------------------------------------------------

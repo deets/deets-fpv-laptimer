@@ -20,23 +20,25 @@ CON _clkmode = xtal1 + pll16x           'Set MCU clock operation
   RTC_DATA = 24
   RTC_COUNT = 1
 
-  ' The program modes
-  MODE_IDLE = 0
-  MODE_SCAN = 1
-  MODE_LAPTIME = 2
+  ' for debugging
+  TX_PIN  = 30
+  RX_PIN  = 31
+  SERIAL_BPS = 115200
 
-DAT
-  RTC_CS byte 20, 18
+  RTC_CS = 20 ' for now just one RTC
 OBJ
   i2c: "i2c"
+  serial: "FullDuplexSerial"
   mcp3008: "MCP3008"
   rtc6715: "RTC6715"
 
-PUB main | mode, input, pause
+PUB main | frequency, rssi
+  serial.Start(RX_PIN, TX_PIN, 0, SERIAL_BPS)
+  rtc6715.init(RTC_CLK, RTC_DATA)
   i2c.Start(SCL_PIN, SCA_PIN, ADDRESS)
   mcp3008.start(MPC_DATA_PIN, MPC_CLK_PIN, MPC_CS_PIN, (|< RTC_COUNT) - 1 )
   ' Register layout
-  ' 16 bit values are little endian
+  ' 16 bit values are big endian
   '
   ' 0 Address
   '
@@ -48,6 +50,11 @@ PUB main | mode, input, pause
   '
   ' 5 R/W ENTER_AT_LEVEL
   ' 6 R/W EXIT_AT_LEVEL
+  '
+  ' 7 READ_LAP_STATS
+  ' 8
+  ' 9
+  ' 10 rssi
 
   i2c.put(0, ADDRESS)
   i2c.put(1, $25)
@@ -59,3 +66,12 @@ PUB main | mode, input, pause
   i2c.put(5, $f0) ' enter
   i2c.put(6, $80) ' exit
   repeat
+    if i2c.checkFlag(3) AND i2c.checkFlag(4) ' frequency was set
+      frequency := i2c.get(4) | (i2c.get(3) << 8)
+      rtc6715.set_frequency(RTC_CS, frequency)
+    rssi := mcp3008.in(0) >> 4
+    i2c.put(7 + 3, rssi)
+
+PRI nl
+    serial.tx(13)
+    serial.tx(10)
