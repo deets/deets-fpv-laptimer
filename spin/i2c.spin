@@ -36,6 +36,8 @@ CON
   READ_EXIT_AT_LEVEL  = $32
   WRITE_EXIT_AT_LEVEL = $72
   READ_LAP_STATS = $05
+  READ_RSSI_PEAK = $23
+  READ_RSSI_NADIR = $24
 VAR
   long  flags                                           ' Used to determine if a register has new data from the master
 
@@ -91,6 +93,9 @@ PUB checkFlag(index)
 
 PUB clearFlag(index)
   flags := flags & !(|< index)
+
+PUB clearFlags
+  flags := 0
 
 PUB get(index)
   return registers[index]
@@ -261,9 +266,19 @@ translate
                         mov       byte_count, #1
 :read_lap_stats
                         cmp       I2C_byte, #READ_LAP_STATS wz
-          if_ne         jmp       #:unknown
+          if_ne         jmp       #:read_rssi_peak
                         mov       I2C_byte, #7
                         mov       byte_count, #16
+:read_rssi_peak
+                        cmp       I2C_byte, #READ_RSSI_PEAK wz
+          if_ne         jmp       #:read_rssi_nadir
+                        mov       I2C_byte, #11
+                        mov       byte_count, #1
+:read_rssi_nadir
+                        cmp       I2C_byte, #READ_RSSI_NADIR wz
+          if_ne         jmp       #:unknown
+                        mov       I2C_byte, #17
+                        mov       byte_count, #1
 :unknown
 translate_ret           ret
 

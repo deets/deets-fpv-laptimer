@@ -26,13 +26,23 @@ CON _clkmode = xtal1 + pll16x           'Set MCU clock operation
   SERIAL_BPS = 115200
 
   RTC_CS = 20 ' for now just one RTC
+  ADC_ADJUST_B = 93 ' see scripts/adc-spread-calc.py
+  ADJ_ADJUST_A = 46942
+VAR
+  BYTE enter_at, exit_at
 OBJ
   i2c: "i2c"
   serial: "FullDuplexSerial"
   mcp3008: "MCP3008"
   rtc6715: "RTC6715"
 
-PUB main | frequency, rssi
+PUB main | rssi, peak, nadir
+  peak := 0
+  nadir := $ff
+
+  enter_at := 20
+  exit_at := 10
+
   serial.Start(RX_PIN, TX_PIN, 0, SERIAL_BPS)
   rtc6715.init(RTC_CLK, RTC_DATA)
   i2c.Start(SCL_PIN, SCA_PIN, ADDRESS)
@@ -45,33 +55,85 @@ PUB main | frequency, rssi
   ' 1 $25 (needed for node-api-level call
   ' 2 NODE_API_LEVEL
   '
-  ' 3 READ_FREQUENCY / WRITE_FREQUENCY L
-  ' 4 READ_FREQUENCY / WRITE_FREQUENCY H
+  ' 3 READ_FREQUENCY / WRITE_FREQUENCY H
+  ' 4 READ_FREQUENCY / WRITE_FREQUENCY L
   '
   ' 5 R/W ENTER_AT_LEVEL
   ' 6 R/W EXIT_AT_LEVEL
   '
-  ' 7 READ_LAP_STATS
-  ' 8
-  ' 9
+  ' READ_LAP_STATS
+  ' Total size: 22 - 7 + 1== 16, plus 1 checksum -> 17. That's
+  ' what the RHInterface.py also signifies
+  ' 7 lapcount
+  ' 8 ms since last lap, H
+  ' 9 ms since last lap, L
   ' 10 rssi
+  ' 11 peak
+  ' 12 lap peak
+  ' 13 loop micros H
+  ' 14 loop micros L
+  ' 15 crossing & flags
+  ' 16 lap nadir
+  ' 17 nadir
+  ' 18 extremum rssi
+  ' 19 first time H
+  ' 20 first time L
+  ' 21 duration H
+  ' 22 duration L
 
   i2c.put(0, ADDRESS)
   i2c.put(1, $25)
   i2c.put(2, NODE_API_LEVEL)
 
-  i2c.put(3, $16) ' 5658
-  i2c.put(4, $1a)
+  store_word(5658, 3)
 
-  i2c.put(5, $f0) ' enter
-  i2c.put(6, $80) ' exit
+  i2c.put(5, enter_at) ' enter
+  i2c.put(6, exit_at) ' exit
+
   repeat
-    if i2c.checkFlag(3) AND i2c.checkFlag(4) ' frequency was set
-      frequency := i2c.get(4) | (i2c.get(3) << 8)
-      rtc6715.set_frequency(RTC_CS, frequency)
-    rssi := mcp3008.in(0) >> 4
-    i2c.put(7 + 3, rssi)
+    rssi := mcp3008.in(0)
+    ' serial.dec(rssi)
+    ' serial.tx($20)
+    rssi -= ADC_ADJUST_B
+    rssi *= ADJ_ADJUST_A
+    rssi >>= 16
+    ' serial.dec(rssi)
+    ' serial.tx($20)
+    ' serial.dec(nadir)
+    ' serial.tx($20)
+    ' serial.dec(peak)
+    nl
+    nadir <#= rssi
+    peak #>= rssi
+    i2c.put(10, rssi)
+    i2c.put(11, peak)
+    i2c.put(17, nadir)
+
+    if i2c.checkFlags <> 0
+        process_registers
 
 PRI nl
     serial.tx(13)
     serial.tx(10)
+
+PRI process_registers | frequency
+    if i2c.checkFlag(3) AND i2c.checkFlag(4) ' frequency was set
+      frequency := (i2c.get(3) << 8) | i2c.get(4)
+      rtc6715.set_frequency(RTC_CS, frequency)
+
+    if i2c.checkFlag(5) ' enter at
+      enter_at := i2c.get(5)
+      ' serial.str(string("enter at:"))
+      ' serial.dec(enter_at)
+      ' nl
+    if i2c.checkFlag(6) ' exit at
+      exit_at := i2c.get(6)
+      ' serial.str(string("exit at:"))
+      ' serial.dec(exit_at)
+      ' nl
+    i2c.clearFlags
+
+PRI store_word(data, a) | offset
+    offset := i2c.register + a
+    byte[offset + 1] := data & $ff
+    byte[offset] := data >> 8
