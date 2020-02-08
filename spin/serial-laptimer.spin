@@ -102,7 +102,7 @@ PRI scan | freq, channel_reading, cs, hfreq
   repeat freq from 0 to 39
     repeat cs from 0 to RTC_COUNT - 1
       hfreq := (freq + 40 / RTC_COUNT * cs) // 40
-      rtc6715.set_frequency(RTC_CS[cs], hfreq)
+      rtc6715.set_channel(RTC_CS[cs], hfreq)
 
     ' wait to stabilise, at least 50ms!
     waitcnt(cnt + _clkfreq / (1000 / 50))
