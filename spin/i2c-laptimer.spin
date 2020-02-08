@@ -28,8 +28,12 @@ CON _clkmode = xtal1 + pll16x           'Set MCU clock operation
   RTC_CS = 20 ' for now just one RTC
   ADC_ADJUST_B = 93 ' see scripts/adc-spread-calc.py
   ADJ_ADJUST_A = 46942
+
+  BIT_FILTER_DEPTH = 7
+
 VAR
   BYTE enter_at, exit_at
+  LONG filtered_rssi
 OBJ
   i2c: "i2c"
   serial: "FullDuplexSerial"
@@ -92,17 +96,14 @@ PUB main | rssi, peak, nadir
 
   repeat
     rssi := mcp3008.in(0)
-    ' serial.dec(rssi)
-    ' serial.tx($20)
     rssi -= ADC_ADJUST_B
     rssi *= ADJ_ADJUST_A
-    rssi >>= 16
-    ' serial.dec(rssi)
+    ' serial.dec(rssi >> 16)
     ' serial.tx($20)
-    ' serial.dec(nadir)
-    ' serial.tx($20)
-    ' serial.dec(peak)
-    nl
+    filtered_rssi += (rssi - filtered_rssi) ~> BIT_FILTER_DEPTH
+    rssi := filtered_rssi >> 16
+    ' serial.dec(filtered_rssi >> 16)
+    ' nl
     nadir <#= rssi
     peak #>= rssi
     i2c.put(10, rssi)
