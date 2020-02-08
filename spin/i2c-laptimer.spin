@@ -32,20 +32,24 @@ CON _clkmode = xtal1 + pll16x           'Set MCU clock operation
   BIT_FILTER_DEPTH = 7
 
 VAR
-  BYTE enter_at, exit_at
+  BYTE enter_at, exit_at, crossing, lapcount
+  WORD lap_timestamp
   LONG filtered_rssi
+
 OBJ
   i2c: "i2c"
   serial: "FullDuplexSerial"
   mcp3008: "MCP3008"
   rtc6715: "RTC6715"
 
-PUB main | rssi, peak, nadir
+PUB main | rssi, peak, nadir, timestamp
   peak := 0
   nadir := $ff
 
-  enter_at := 20
-  exit_at := 10
+  crossing := 0
+  enter_at := 140
+  exit_at := 80
+  lapcount := 0
 
   serial.Start(RX_PIN, TX_PIN, 0, SERIAL_BPS)
   rtc6715.init(RTC_CLK, RTC_DATA)
@@ -95,6 +99,7 @@ PUB main | rssi, peak, nadir
   i2c.put(6, exit_at) ' exit
 
   repeat
+    timestamp := cnt / (_clkfreq / 1000) ' timestamp in milliseconds
     rssi := mcp3008.in(0)
     rssi -= ADC_ADJUST_B
     rssi *= ADJ_ADJUST_A
@@ -102,6 +107,7 @@ PUB main | rssi, peak, nadir
     ' serial.tx($20)
     filtered_rssi += (rssi - filtered_rssi) ~> BIT_FILTER_DEPTH
     rssi := filtered_rssi >> 16
+    compute_lap(timestamp, rssi)
     ' serial.dec(filtered_rssi >> 16)
     ' nl
     nadir <#= rssi
@@ -138,3 +144,23 @@ PRI store_word(data, a) | offset
     offset := i2c.register + a
     byte[offset + 1] := data & $ff
     byte[offset] := data >> 8
+
+PRI compute_lap(timestamp, rssi)
+    ' serial.dec(rssi)
+    ' serial.tx($20)
+    ' serial.dec(crossing)
+    ' nl
+    if crossing == 0 AND rssi => enter_at
+       crossing := 1
+       serial.str(string("crossing"))
+       nl
+       lap_timestamp := timestamp
+    if crossing == 1 AND rssi <= exit_at
+       crossing := 0
+       lap_timestamp := (timestamp + lap_timestamp) ~> 1
+       lapcount += 1
+       i2c.put(7, lapcount)
+       store_word(lap_timestamp, 8)
+       serial.str(string("lap:"))
+       serial.dec(lapcount)
+       nl
