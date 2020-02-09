@@ -31,15 +31,29 @@ CON _clkmode = xtal1 + pll16x           'Set MCU clock operation
 
   BIT_FILTER_DEPTH = 7
 
+  OFFSET_LAP_COUNT = 7
+  OFFSET_MS_SINCE_LAP = 8
+  OFFSET_RSSI = 10
+  OFFSET_PEAK = 11
+  OFFSET_LAP_PEAK = 12
+  OFFSET_LOOP_US = 13
+  OFFSET_CROSSING_FLAGS = 15
+  OFFSET_LAP_NADIR = 16
+  OFFSET_NADIR = 17
+
+  LAP_TRIGGER_PIN = 17
+
+  START_FREQUENCY = 5658
 VAR
-  BYTE enter_at, exit_at, crossing, lapcount
+  BYTE enter_at, exit_at, crossing, lapcount, lap_nadir, lap_peak
   WORD lap_timestamp
   LONG filtered_rssi
 
 OBJ
   i2c: "i2c"
   serial: "FullDuplexSerial"
-  mcp3008: "MCP3008"
+  'mcp3008: "MCP3008"
+  mcp3008: "fake-mcp3008"
   rtc6715: "RTC6715"
 
 PUB main | rssi, peak, nadir, timestamp
@@ -54,10 +68,11 @@ PUB main | rssi, peak, nadir, timestamp
   serial.Start(RX_PIN, TX_PIN, 0, SERIAL_BPS)
   rtc6715.init(RTC_CLK, RTC_DATA)
   i2c.Start(SCL_PIN, SCA_PIN, ADDRESS)
-  mcp3008.start(MPC_DATA_PIN, MPC_CLK_PIN, MPC_CS_PIN, (|< RTC_COUNT) - 1 )
-  ' Register layout
-  ' 16 bit values are big endian
-  '
+  'mcp3008.start(MPC_DATA_PIN, MPC_CLK_PIN, MPC_CS_PIN, (|< RTC_COUNT) - 1 )
+  mcp3008.start(LAP_TRIGGER_PIN, 140, 316)
+  rtc6715.set_frequency(RTC_CS, START_FREQUENCY)
+  store_word(START_FREQUENCY, 3)
+
   ' 0 Address
   '
   ' 1 $25 (needed for node-api-level call
@@ -93,8 +108,6 @@ PUB main | rssi, peak, nadir, timestamp
   i2c.put(1, $25)
   i2c.put(2, NODE_API_LEVEL)
 
-  store_word(5658, 3)
-
   i2c.put(5, enter_at) ' enter
   i2c.put(6, exit_at) ' exit
 
@@ -107,14 +120,18 @@ PUB main | rssi, peak, nadir, timestamp
     ' serial.tx($20)
     filtered_rssi += (rssi - filtered_rssi) ~> BIT_FILTER_DEPTH
     rssi := filtered_rssi >> 16
-    compute_lap(timestamp, rssi)
     ' serial.dec(filtered_rssi >> 16)
     ' nl
+    compute_lap(timestamp, rssi)
     nadir <#= rssi
     peak #>= rssi
-    i2c.put(10, rssi)
-    i2c.put(11, peak)
-    i2c.put(17, nadir)
+    lap_nadir <#= rssi
+    lap_peak #>= rssi
+
+    i2c.put(OFFSET_RSSI, rssi)
+    i2c.put(OFFSET_PEAK, peak)
+    i2c.put(OFFSET_NADIR, nadir)
+    store_word(timestamp - lap_timestamp, OFFSET_MS_SINCE_LAP)
 
     if i2c.checkFlags <> 0
         process_registers
@@ -152,15 +169,20 @@ PRI compute_lap(timestamp, rssi)
     ' nl
     if crossing == 0 AND rssi => enter_at
        crossing := 1
-       serial.str(string("crossing"))
-       nl
        lap_timestamp := timestamp
+       lap_nadir := rssi
+       lap_peak := rssi
+       ' serial.str(string("crossing"))
+       ' nl
     if crossing == 1 AND rssi <= exit_at
        crossing := 0
-       lap_timestamp := (timestamp + lap_timestamp) ~> 1
        lapcount += 1
-       i2c.put(7, lapcount)
-       store_word(lap_timestamp, 8)
-       serial.str(string("lap:"))
-       serial.dec(lapcount)
+       i2c.put(OFFSET_LAP_COUNT, lapcount)
+       store_word((timestamp - lap_timestamp) ~> 1, 21) ' length of crossing
+       lap_timestamp := (timestamp + lap_timestamp) ~> 1
+       store_word(lap_timestamp, 19) ' middle of crossing
+       i2c.put(OFFSET_LAP_PEAK, lap_peak)
+       i2c.put(OFFSET_LAP_NADIR, lap_nadir)
+       ' serial.str(string("lap:"))
+       ' serial.dec(lapcount)
        nl
