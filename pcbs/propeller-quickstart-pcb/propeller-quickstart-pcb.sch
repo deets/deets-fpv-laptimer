@@ -474,9 +474,6 @@ NoConn ~ 7650 2700
 NoConn ~ 7650 2800
 NoConn ~ 7650 2900
 NoConn ~ 7650 3000
-NoConn ~ 7650 3100
-NoConn ~ 7650 3200
-NoConn ~ 7650 3300
 $Comp
 L power:GND #PWR0101
 U 1 1 5E135035
@@ -549,4 +546,10 @@ F 3 "" H 5450 1800 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	5150 1800 4800 1800
+Text Label 7650 3300 0    50   ~ 0
+SCA
+Text Label 7650 3200 0    50   ~ 0
+SCL
+Text Label 7650 3100 0    50   ~ 0
+LAP_TRIGGER
 $EndSCHEMATC
