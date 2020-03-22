@@ -1,1 +1,1 @@
-:compile-command '(relative "./build.sh i2c-laptimer.spin")
+:compile-command '(relative "./build.sh spi-laptimer.spin")

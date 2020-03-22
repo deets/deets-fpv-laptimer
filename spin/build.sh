@@ -14,11 +14,11 @@ def main():
         [OPENSPIN, main_spin],
         check=True
     )
-    assert os.path.exists(main_binary)
-    subprocess.run(
-        [PROPMAN, main_binary],
-        check=True
-    )
+    # assert os.path.exists(main_binary)
+    # subprocess.run(
+    #     [PROPMAN, main_binary],
+    #     check=True
+    # )
 
 
 if __name__ == '__main__':
