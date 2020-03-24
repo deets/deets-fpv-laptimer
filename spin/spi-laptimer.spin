@@ -30,25 +30,29 @@ spi_main
     muxnz    dira, miso_mask             ' and turn it output
 :cs_loop
     waitpne  cs_mask, cs_mask
-    mov      buffer, cnt
-    mov      bitcount, #31
+    mov      buffer, incoming
+    mov      incoming, #0
+    mov      bitcount, #32
 :bit_loop
     shl      buffer, #1       wc
     muxc     outa, miso_mask
     waitpeq  clk_mask, clk_mask    ' clk high
+    test     mosi_mask, ina   wc
+    rcl      incoming, #1
     waitpne  clk_mask, clk_mask    ' clk low
     sub      bitcount, #1       wz
 if_nz jmp     #:bit_loop
-:bit_loop_exit
     waitpeq  cs_mask, cs_mask
     mov      buffer, #1                wz
     muxz     outa, miso_mask
     jmp      #:cs_loop
 
-cs_mask  long $1           ' A0
-clk_mask long $2           ' A1
+cs_mask  long $1           ' A0 .. A3
+clk_mask long $2
+mosi_mask long $4
 miso_mask long $8
 data     long $aa00ff00
 
 buffer   long 0
+incoming long 0
 bitcount long 0
