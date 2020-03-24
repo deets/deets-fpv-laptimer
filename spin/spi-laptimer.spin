@@ -25,43 +25,41 @@ PRI stop
 DAT org
 
 spi_main
-   mov      miso_mask,     #1        wz ' setting wz to 0
-   shl      miso_mask,     #3           ' hardcoded A3
-   muxnz    outa, miso_mask           ' set miso high
-   muxnz    dira, miso_mask           ' and turn it output
-:cs_test_loop
-   waitpne  cs_mask, cs_mask
-   muxz     outa, miso_mask           ' set miso low
-:cs_wait
-   and     cs_mask, ina              wz, nr   ' check for CS
-if_z jmp  #:cs_wait
+'    mov      miso_mask,     #1   wz ' setting wz to 0
+'    shl      miso_mask,     #3           ' hardcoded A3
+'    muxnz    outa, miso_mask           ' set miso high
+'    muxnz    dira, miso_mask           ' and turn it output
+' :clk_test_loop
+'    waitpeq  clk_mask, clk_mask
+'    muxz     outa, miso_mask           ' set miso low
+'    waitpne  clk_mask, clk_mask
+'    muxnz    outa, miso_mask           ' set miso low
+'    jmp      #:clk_test_loop
 
-   'waitpeq  cs_mask, cs_mask
-   muxnz     outa, miso_mask           ' set miso low
-   jmp      #:cs_test_loop
-
-
-   mov      miso_mask,     #1        wz ' setting wz to 0
-   shl      miso_mask,     #3           ' hardcoded A3
-   muxz     outa, miso_mask           ' set miso low
-   muxnz    dira, miso_mask           ' and turn it output
+    mov      miso_mask,     #1        nr, wz ' force wz to 0
+    muxz     outa, miso_mask             ' set miso low
+    muxnz    dira, miso_mask             ' and turn it output
 :cs_loop
-   waitpne  cs_mask, cs_mask
-   mov      buffer, #$a1' cnt
+    waitpne  cs_mask, cs_mask
+    mov      buffer, cnt
+    mov      bitcount, #31
 :bit_loop
-   shr     buffer, #1       wc
-   waitpeq  clk_mask, clk_mask
-   muxc    outa, miso_mask
-   waitpne  clk_mask, clk_mask
-   and     cs_mask, ina              wz, nr   ' check for CS
-if_z jmp  #:bit_loop
-   ' MISO low
-   mov     buffer, #1                wz
-   muxz   outa, miso_mask
-   jmp #:cs_loop
+    shr      buffer, #1       wc
+    waitpeq  clk_mask, clk_mask
+    muxc     outa, miso_mask
+    waitpne  clk_mask, clk_mask
+    sub      bitcount, #1       wz
+if_nz jmp     #:bit_loop
+    ' MISO low
+    waitpeq  cs_mask, cs_mask
+    mov      buffer, #1                wz
+    muxz     outa, miso_mask
+    jmp      #:cs_loop
 
 cs_mask  long $1           ' A0
 clk_mask long $2          ' A1
+miso_mask long $8
 data     long $aa00ff00
-miso_mask  res 1
-buffer   res 1
+
+buffer   long 0
+bitcount long 0
