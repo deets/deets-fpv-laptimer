@@ -30,7 +30,15 @@ spi_main
     muxnz    dira, miso_mask             ' and turn it output
 :cs_loop
     waitpne  cs_mask, cs_mask
-    mov      buffer, incoming
+' we shift out the out_buf contents one by one
+    mov      temp, #out_buf
+    add      temp, out_pos
+    movs     :copy_out_buf, temp
+    add      out_pos, #1
+    cmp      out_pos, #4      wz
+if_nz    jmp      #:copy_out_buf
+    mov      out_pos, #0
+:copy_out_buf mov buffer, 0 ' this is adjusted
     mov      incoming, #0
     mov      bitcount, #32
 :bit_loop
@@ -52,7 +60,15 @@ clk_mask long $2
 mosi_mask long $4
 miso_mask long $8
 data     long $aa00ff00
-
+temp     long 0
 buffer   long 0
 incoming long 0
 bitcount long 0
+
+out_pos  long $0
+
+out_buf  long $1
+         long $2
+         long $3
+         long $4
+         long $ffffffff
