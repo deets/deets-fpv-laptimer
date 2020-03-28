@@ -8,8 +8,9 @@ CON
   _clkmode = xtal1 + pll16x
   _xinfreq = 6_000_000
 
-  BUFSIZE = 64
   DATAGRAM_SIZE = 8
+  BUFSIZE = 8 * DATAGRAM_SIZE
+
 VAR
     long cog
     long write_pos
@@ -24,11 +25,11 @@ PUB main | h
       ' has been written
       h := write_pos
       repeat DATAGRAM_SIZE
-        ring_buffer[h] := cnt
+        ring_buffer[h] := 1000000
         h := (h + 1) // BUFSIZE
       write_pos := h
 
-      waitcnt(cnt + clkfreq / 10)
+      waitcnt(cnt + clkfreq / 5)
 
 PRI start(wp): okay
     okay := cognew(@spi_main, wp) + 1
@@ -44,9 +45,8 @@ spi_main
              mov       miso_mask, #1        nr, wz ' force wz to 0
              muxz      outa, miso_mask             ' set miso low
              muxnz     dira, miso_mask             ' and turn it output
-             ' get our first slice of buffer
-             'call       #fill_buffer
 :cs_loop
+             call       #fill_buffer
              waitpne  cs_mask, cs_mask
              mov      wordcounter, #DATAGRAM_SIZE + 1
              mov      d0, #out_buf
@@ -67,10 +67,9 @@ spi_main
              movs     :word_read, d0
              djnz     wordcounter, #:word_loop
 
-:cs_exit     waitpeq  cs_mask, cs_mask
+             waitpeq  cs_mask, cs_mask
              mov      buffer, #1                wz
              muxz     outa, miso_mask
-             'call     #fill_buffer
              jmp      #:cs_loop
 
 ' Our buffer looks like this:
@@ -82,8 +81,10 @@ fill_buffer
              mov      read_pointer, write_pos_addr
              rdlong   size, read_pointer
              ' compute the amount of data in the ringbuffer
-             sub      size, read_pos wz
-             mov      out_buf, size
+             sub      size, read_pos wc, wz
+             ' ensure we correct for wrap-around
+if_c         add      size, #BUFSIZE
+             mov       out_buf, size
              ' if the size is zero, we don't have any
              ' data to copy. the transaction will still
              ' copy over the old data, but we don't have to
