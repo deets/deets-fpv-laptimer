@@ -25,7 +25,7 @@ PUB main | h
       ' has been written
       h := write_pos
       repeat DATAGRAM_SIZE
-        ring_buffer[h] := 1000000
+        ring_buffer[h] := cnt
         h := (h + 1) // BUFSIZE
       write_pos := h
 
@@ -90,21 +90,20 @@ if_c         add      size, #BUFSIZE
              ' copy over the old data, but we don't have to
              ' care about that.
 if_z         jmp      #fill_buffer_ret
-             ' adjust the read_pointer to point at the
-             ' first long in the ring buffer
-             add      read_pointer, #4
              ' adjust our copy instruction to
              ' the beginning of our buffer beyond size
              mov      out_pos, #out_buf
              mov      wordcounter, #DATAGRAM_SIZE
 :copy_loop
-             ' point to the next buffer member
+             ' point to the next buffer element
              add      out_pos, #1
              movd     :read_long, out_pos
              ' move forward to our actual
              ' read position
+             mov      read_pointer, write_pos_addr
              mov      d0, read_pos
-             shl      d0, #4
+             add      d0, #1 ' offset the write pos
+             shl      d0, #2
              add      read_pointer, d0
 :read_long   rdlong   0, read_pointer
              ' increment the read-pos and
